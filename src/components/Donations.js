@@ -56,6 +56,7 @@ function Donations(props) {
             donationDetails
           };
           const { data } = await axios.post(verifyUrl, verifyData);
+          window.location.href='/success'
           console.log(data);
         } catch (error) {
           console.log(error);

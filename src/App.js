@@ -4,7 +4,7 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 import Home from './components/Home';
 import About from './components/About';
-
+import Donationsuccess from './components/Donationsuccess'
 import Services from './components/Services';
 import Events from './components/Events';
 import Donations from './components/Donations';
@@ -26,6 +26,7 @@ function App() {
             <Route path="/donations" element={<Donations />} />
             <Route path="/gallery" element={<Gallery />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/success" element={<Donationsuccess />} />
           </Routes>
         </main>
         <Footer />
