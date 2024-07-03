@@ -1,54 +1,87 @@
-import React, { useState } from 'react';
-
+import React, { useState,useEffect } from 'react';
+import axios from 'axios';
 import './Donation.css';
 
 function Donations(props) {
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [fatherName, setFatherName] = useState('');
-  const [contactNumber, setContactNumber] = useState('');
-  const [email, setEmail] = useState('');
-  const [address, setAddress] = useState('');
-  const [country, setCountry] = useState('');
-  const [city, setCity] = useState('');
-  const [state, setState] = useState('');
-  const [pincode, setPincode] = useState('');
-  const [donationCategory, setDonationCategory] = useState('Annadanam');
-  const [donationAmount, setDonationAmount] = useState('');
-  const [idProofType, setIdProofType] = useState('');
-  const [idProofNumber, setIdProofNumber] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('');
-  const [cardNumber, setCardNumber] = useState('');
-  const [expiryDate, setExpiryDate] = useState('');
-  const [cvv, setCVV] = useState('');
-
+  const [donationDetails, setDonationDetails] = useState({
+    firstName: '',
+    lastName: '',
+    fatherName: '',
+    contactNumber: '',
+    email: '',
+    address: '',
+    country: '',
+    city: '',
+    state: '',
+    pincode: '',
+    donationCategory: 'Annadanam',
+    donationAmount: '',
+    idProofType: 'Aadhar',
+    idProofNumber: '',
   
+  });
+  const [razorpayKey, setRazorpayKey] = useState('');
 
+  useEffect(() => {
+    const fetchKey = async () => {
+      try {
+        const { data } = await axios.get('http://localhost:3005/get-razorpay-key');
+        setRazorpayKey(data.key);
+      } catch (error) {
+        console.error('Error fetching Razorpay key:', error);
+      }
+    };
+    fetchKey();
+  }, []);
+  const handleChange = (e) => {
+    const { id, value } = e.target;
+    setDonationDetails((prevDetails) => ({
+      ...prevDetails,
+      [id]: value
+    }));
+  };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Handle form submission (e.g., send data to backend)
-    console.log('First Name:', firstName);
-    console.log('Last Name:', lastName);
-    console.log('Father Name:', fatherName);
-    console.log('Contact Number:', contactNumber);
-    console.log('Email:', email);
-    console.log('Address:', address);
-    console.log('Country:', country);
-    console.log('City:', city);
-    console.log('State:', state);
-    console.log('Pincode:', pincode);
-    console.log('Donation Category:', donationCategory);
-    console.log('Donation Amount:', donationAmount);
-    console.log('ID Proof Type:', idProofType);
-    console.log('ID Proof Number:', idProofNumber);
-    console.log('Payment Method:', paymentMethod);
-    if (paymentMethod === 'Card') {
-      console.log('Card Number:', cardNumber);
-      console.log('Expiry Date:', expiryDate);
-      console.log('CVV:', cvv);
+  const initPayment = (data) => {
+    const options = {
+      key: razorpayKey,
+      amount: data.amount,
+      currency: data.currency,
+      description: "Test Transaction",
+      order_id: data.id,
+      handler: async (response) => {
+        try {
+          const verifyUrl = "http://localhost:3005/verify";
+          const verifyData = {
+            ...response,
+            donationDetails
+          };
+          const { data } = await axios.post(verifyUrl, verifyData);
+          window.location.href='/success'
+          console.log(data);
+        } catch (error) {
+          console.log(error);
+        }
+      },
+      theme: {
+        color: "#3399cc",
+      },
+    };
+    const rzp1 = new window.Razorpay(options);
+    rzp1.open();
+  };
+  
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    try {
+      const orderUrl = "http://localhost:3005/orders";
+      const { data } = await axios.post(orderUrl, { amount: donationDetails.donationAmount });
+      console.log(data);
+      initPayment(data.data);
+    } catch (error) {
+      console.log(error);
     }
   };
+  
 
   return (
     <div className="formContainer">
@@ -62,8 +95,8 @@ function Donations(props) {
               <input
                 id="firstName"
                 type="text"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
+                value={donationDetails.firstName}
+                onChange={handleChange}
                 className="input"
                 required
               />
@@ -73,8 +106,8 @@ function Donations(props) {
               <input
                 id="lastName"
                 type="text"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
+                value={donationDetails.lastName}
+                onChange={handleChange}
                 className="input"
                 required
               />
@@ -84,8 +117,8 @@ function Donations(props) {
               <input
                 id="fatherName"
                 type="text"
-                value={fatherName}
-                onChange={(e) => setFatherName(e.target.value)}
+                value={donationDetails.fatherName}
+                onChange={handleChange}
                 className="input"
                 required
               />
@@ -95,8 +128,8 @@ function Donations(props) {
               <input
                 id="contactNumber"
                 type="tel"
-                value={contactNumber}
-                onChange={(e) => setContactNumber(e.target.value)}
+                value={donationDetails.contactNumber}
+                onChange={handleChange}
                 className="input"
                 required
               />
@@ -106,8 +139,8 @@ function Donations(props) {
               <input
                 id="email"
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={donationDetails.email}
+                onChange={handleChange}
                 className="input"
                 required
               />
@@ -122,8 +155,8 @@ function Donations(props) {
               <input
                 id="address"
                 type="text"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
+                value={donationDetails.address}
+                onChange={handleChange}
                 className="input"
                 required
               />
@@ -133,8 +166,8 @@ function Donations(props) {
               <input
                 id="country"
                 type="text"
-                value={country}
-                onChange={(e) => setCountry(e.target.value)}
+                value={donationDetails.country}
+                onChange={handleChange}
                 className="input"
                 required
               />
@@ -144,8 +177,8 @@ function Donations(props) {
               <input
                 id="city"
                 type="text"
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
+                value={donationDetails.city}
+                onChange={handleChange}
                 className="input"
                 required
               />
@@ -155,8 +188,8 @@ function Donations(props) {
               <input
                 id="state"
                 type="text"
-                value={state}
-                onChange={(e) => setState(e.target.value)}
+                value={donationDetails.state}
+                onChange={handleChange}
                 className="input"
                 required
               />
@@ -166,8 +199,8 @@ function Donations(props) {
               <input
                 id="pincode"
                 type="text"
-                value={pincode}
-                onChange={(e) => setPincode(e.target.value)}
+                value={donationDetails.pincode}
+                onChange={handleChange}
                 className="input"
                 required
               />
@@ -181,9 +214,10 @@ function Donations(props) {
               <label htmlFor="donationCategory">Donation Category:</label>
               <select
                 id="donationCategory"
-                value={donationCategory}
-                onChange={(e) => setDonationCategory(e.target.value)}
+                value={donationDetails.donationCategory}
+                onChange={handleChange}
                 className="input"
+                required
               >
                 <option value="Annadanam">Annadanam</option>
                 <option value="Alaya Abhivrudhi">Alaya Abhivrudhi</option>
@@ -199,8 +233,8 @@ function Donations(props) {
               <input
                 id="donationAmount"
                 type="number"
-                value={donationAmount}
-                onChange={(e) => setDonationAmount(e.target.value)}
+                value={donationDetails.donationAmount}
+                onChange={handleChange}
                 className="input"
                 required
               />
@@ -209,9 +243,10 @@ function Donations(props) {
               <label htmlFor="idProofType">ID Proof Type:</label>
               <select
                 id="idProofType"
-                value={idProofType}
-                onChange={(e) => setIdProofType(e.target.value)}
+                value={donationDetails.idProofType}
+                onChange={handleChange}
                 className="input"
+                required
               >
                 <option value="Aadhar">Aadhar</option>
                 <option value="Pan">Pan</option>
@@ -225,64 +260,17 @@ function Donations(props) {
               <input
                 id="idProofNumber"
                 type="text"
-                value={idProofNumber}
-                onChange={(e) => setIdProofNumber(e.target.value)}
+                value={donationDetails.idProofNumber}
+                onChange={handleChange}
                 className="input"
                 required
               />
             </div>
-            <div className="formGroup">
-              <label htmlFor="paymentMethod">Payment Method:</label>
-              <select
-                id="paymentMethod"
-                value={paymentMethod}
-                onChange={(e) => setPaymentMethod(e.target.value)}
-                className="input"
-              >
-              <option value="">Select Payment Method</option>
-                <option value="UPI">UPI</option>
-                <option value="Card">Card</option>
-                
-              </select>
-            </div>
-            {paymentMethod === 'UPI' && (
-          <div className="qrCodeContainer">
-            <h3>Scan and Pay</h3>
-            <img src={`${process.env.PUBLIC_URL}/image/payment.png`} alt="scanner" />
-          </div>
-        )}
-        {paymentMethod === 'Card' && (
-          <div className="cardDetailsContainer">
-            <h3>Enter Card Details</h3>
-            
-            <input
-              type="text"
-              placeholder="Card Number"
-              value={cardNumber}
-              onChange={(e) => setCardNumber(e.target.value)}
-            />
-            <input
-              type="text"
-              placeholder="Expiry Date"
-              value={expiryDate}
-              onChange={(e) => setExpiryDate(e.target.value)}
-            />
-            <input
-              type="text"
-              placeholder="CVV"
-              value={cvv}
-              onChange={(e) => setCVV(e.target.value)}
-            />
-          </div>
-        )}
-  
 
           </div>
         </fieldset>
-
-        <button type="submit" className="button">Donate Now</button>
+        <button type="submit" className="button">Donate</button>
       </form>
-      
     </div>
   );
 }
